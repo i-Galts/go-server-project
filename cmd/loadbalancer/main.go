@@ -9,7 +9,9 @@ import (
 
 	"github.com/i-Galts/go-server-project/internal/app/backend"
 	"github.com/i-Galts/go-server-project/internal/app/loadbalancer"
+	"github.com/i-Galts/go-server-project/internal/app/ratelimiter"
 	"github.com/i-Galts/go-server-project/internal/app/server"
+	"github.com/i-Galts/go-server-project/internal/app/storage"
 )
 
 var configPath = flag.String("conf-path", "configs/lb_conf.json", "Path to server config file")
@@ -35,9 +37,21 @@ func main() {
 		os.Exit(0)
 	}
 
-	// start backend servers
+	// rate limiter
+	db, err := storage.NewStorage("clients.db")
+	if err != nil {
+		fmt.Println("error opening clients database:", err)
+	}
+
+	rl := ratelimiter.NewLimiter(
+		conf.RateLimiterCap,
+		conf.RateLimiterRefillRate,
+	)
+	rl.ClientStorage = db
+
 	backends := backend.RunBackends(&conf)
-	lb := loadbalancer.NewLoadBalancer(0)
+	lb := loadbalancer.NewLoadBalancer(rl)
+
 	for _, b := range backends {
 		lb.Add(b)
 	}

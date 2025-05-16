@@ -7,5 +7,7 @@
 		"http://localhost:7001",
 		"http://localhost:7002",
 		"http://localhost:7003"
-	]
+	],
+	"rl_capacity": 10,
+	"rl_refillrate": 1
 }

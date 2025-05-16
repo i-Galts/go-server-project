@@ -3,10 +3,12 @@ package loadbalancer
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"sync/atomic"
 
 	"github.com/i-Galts/go-server-project/internal/app/backend"
+	"github.com/i-Galts/go-server-project/internal/app/ratelimiter"
 )
 
 type ILoadBalancer interface {
@@ -15,13 +17,16 @@ type ILoadBalancer interface {
 }
 
 type LoadBalancer struct {
-	Backends []backend.IBackend
-	Current  uint64
-	Mutex    sync.Mutex
+	Backends    []backend.IBackend
+	Current     uint64
+	Mutex       sync.Mutex
+	RateLimiter *ratelimiter.RateLimiter
 }
 
-func NewLoadBalancer(cur uint64) *LoadBalancer {
-	return &LoadBalancer{Current: cur}
+func NewLoadBalancer(rl *ratelimiter.RateLimiter) *LoadBalancer {
+	return &LoadBalancer{
+		RateLimiter: rl,
+	}
 }
 
 func (lb *LoadBalancer) Add(backend backend.IBackend) {
@@ -53,6 +58,21 @@ func (lb *LoadBalancer) GetNextBackend() backend.IBackend {
 }
 
 func (lb *LoadBalancer) Serve(w http.ResponseWriter, r *http.Request) {
+	var extractIP = func(rr *http.Request) string {
+		ip := rr.RemoteAddr
+		if i := strings.LastIndex(ip, ":"); i != -1 {
+			ip = ip[:i]
+		}
+		return ip
+	}
+
+	clientIP := extractIP(r)
+
+	if !lb.RateLimiter.Permit(clientIP) {
+		fmt.Printf("error: too many requests from client %s\n", clientIP)
+		return
+	}
+
 	b := lb.GetNextBackend()
 	if b == nil {
 		fmt.Println("all backends are down")

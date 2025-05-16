@@ -6,10 +6,12 @@ import (
 )
 
 type ServerConfig struct {
-	Port          string   `json:"port"`
-	LogLevel      string   `json:"log_level"`
-	CheckInterval string   `json:"check_interval"`
-	Backends      []string `json:"backends"`
+	Port                  string   `json:"port"`
+	LogLevel              string   `json:"log_level"`
+	CheckInterval         string   `json:"check_interval"`
+	Backends              []string `json:"backends"`
+	RateLimiterCap        int      `json:"rl_capacity"`
+	RateLimiterRefillRate int      `json:"rl_refillrate"`
 }
 
 func LoadConfig(file string) (ServerConfig, error) {
