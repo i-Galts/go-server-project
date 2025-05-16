@@ -1,13 +1,15 @@
+// Package ratelimiter provides a token bucket-based rate limiting implementation.
 package ratelimiter
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
+	"github.com/i-Galts/go-server-project/internal/app/logger"
 	"github.com/i-Galts/go-server-project/internal/app/storage"
 )
 
+// manages rate limits for multiple clients (e.g., by IP address)
 type RateLimiter struct {
 	Buckets       map[string]*Bucket
 	Mutex         sync.RWMutex
@@ -24,10 +26,12 @@ func NewLimiter(capacity, refillRate int) *RateLimiter {
 	}
 }
 
+// checks whether a request from the specified client (identified by IP) is allowed
 func (rl *RateLimiter) Permit(ip string) bool {
 	return rl.getBucket(ip).Permit()
 }
 
+// retrieves or creates a token bucket for the given client IP
 func (rl *RateLimiter) getBucket(ip string) *Bucket {
 	rl.Mutex.Lock()
 	defer rl.Mutex.Unlock()
@@ -39,7 +43,7 @@ func (rl *RateLimiter) getBucket(ip string) *Bucket {
 		if rl.ClientStorage != nil {
 			conf, err := rl.ClientStorage.GetClientConfig(ip)
 			if err != nil {
-				fmt.Println("error getting client config by ip: ", err)
+				logger.Log.Errorf("error getting client config by ip: ", err)
 			} else {
 				capacity = conf.Capacity
 				refillRate = conf.RefillRate

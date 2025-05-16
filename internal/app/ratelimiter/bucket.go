@@ -1,3 +1,6 @@
+// Package ratelimiter provides a token bucket-based rate limiting implementation.
+// It allows controlling the rate at which actions (e.g., HTTP requests) are permitted,
+// preventing abuse or overuse of system resources.
 package ratelimiter
 
 import (
@@ -6,6 +9,7 @@ import (
 	"time"
 )
 
+// represents a token bucket used for rate limiting
 type Bucket struct {
 	Capacity     int
 	Tokens       int
@@ -14,6 +18,7 @@ type Bucket struct {
 	Mutex        sync.Mutex
 }
 
+// refills tokens based on elapsed time since last check
 func (b *Bucket) Permit() bool {
 	b.Mutex.Lock()
 	defer b.Mutex.Unlock()

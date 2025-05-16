@@ -1,3 +1,5 @@
+// Package server provides structures and utilities for configuring and running the application server.
+// This file focuses on loading server configuration from JSON files.
 package server
 
 import (
@@ -5,6 +7,7 @@ import (
 	"os"
 )
 
+// holds all configurable parameters for the server
 type ServerConfig struct {
 	Port                  string   `json:"port"`
 	LogLevel              string   `json:"log_level"`
@@ -14,6 +17,7 @@ type ServerConfig struct {
 	RateLimiterRefillRate int      `json:"rl_refillrate"`
 }
 
+// reads and parses a JSON configuration file into a ServerConfig struct
 func LoadConfig(file string) (ServerConfig, error) {
 	var conf ServerConfig
 

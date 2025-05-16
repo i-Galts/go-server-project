@@ -1,3 +1,5 @@
+// Package storage provides persistent storage functionality for client-specific rate limiting configurations.
+// It uses SQLite as the backend database and supports operations to get, set, and update client limits.
 package storage
 
 import (
@@ -7,15 +9,18 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// represents the rate limit configuration for a specific client
 type ClientConfig struct {
 	Capacity   int
 	RefillRate int
 }
 
+// manages interactions with the underlying SQLite database
 type Storage struct {
 	database *sql.DB
 }
 
+// initializes a new SQLite-based storage instance at the given file path
 func NewStorage(path string) (*Storage, error) {
 	db, err := sql.Open("sqlite3", path)
 	if err != nil {
@@ -32,6 +37,7 @@ func NewStorage(path string) (*Storage, error) {
 	return &Storage{database: db}, nil
 }
 
+// retrieves the rate limit configuration for a specific client identified by its IP address
 func (s *Storage) GetClientConfig(ip string) (*ClientConfig, error) {
 	var config ClientConfig
 	err := s.database.QueryRow(`
@@ -47,6 +53,7 @@ func (s *Storage) GetClientConfig(ip string) (*ClientConfig, error) {
 	return &config, nil
 }
 
+// inserts or updates a client's rate limit configuration in the database
 func (s *Storage) SetClientConfig(clientID string, capacity, refillRate int) error {
 	_, err := s.database.Exec(`
 		INSERT INTO client_limits (client_id, capacity, refill_rate)
@@ -58,6 +65,7 @@ func (s *Storage) SetClientConfig(clientID string, capacity, refillRate int) err
 	return err
 }
 
+// gracefully closes the database connection
 func (s *Storage) Close() {
 	s.database.Close()
 }
