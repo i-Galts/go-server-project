@@ -8,7 +8,6 @@
 		"http://localhost:7002",
 		"http://localhost:7003"
 	],
-	"storage": {
-		"database_url": "host=localhost user=ilyagaltsov password=mysecretpassword dbname=project_dev sslmode=disable"
-	}
+	"rl_capacity": 10,
+	"rl_refillrate": 1
 }

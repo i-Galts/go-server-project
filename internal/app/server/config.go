@@ -2,18 +2,16 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
-
-	"github.com/i-Galts/go-server-project/internal/app/storage"
 )
 
 type ServerConfig struct {
-	Port          string                `json:"port"`
-	LogLevel      string                `json:"log_level"`
-	CheckInterval string                `json:"check_interval"`
-	Backends      []string              `json:"backends"`
-	StorageConfig storage.StorageConfig `json:"storage"`
+	Port                  string   `json:"port"`
+	LogLevel              string   `json:"log_level"`
+	CheckInterval         string   `json:"check_interval"`
+	Backends              []string `json:"backends"`
+	RateLimiterCap        int      `json:"rl_capacity"`
+	RateLimiterRefillRate int      `json:"rl_refillrate"`
 }
 
 func LoadConfig(file string) (ServerConfig, error) {
@@ -28,8 +26,6 @@ func LoadConfig(file string) (ServerConfig, error) {
 	if err != nil {
 		return conf, err
 	}
-
-	fmt.Println("conf.StorageConfig.URL = ", conf.StorageConfig.URL)
 
 	return conf, nil
 }
