@@ -12,7 +12,7 @@ import (
 	"github.com/i-Galts/go-server-project/internal/app/server"
 )
 
-var configPath = flag.String("conf-path", "configs/server_conf.json", "Path to server config file")
+var configPath = flag.String("conf-path", "configs/lb_conf.json", "Path to server config file")
 
 func main() {
 	flag.Parse()
@@ -35,13 +35,14 @@ func main() {
 		os.Exit(0)
 	}
 
+	// start backend servers
 	backends := backend.RunBackends(&conf)
-
 	lb := loadbalancer.NewLoadBalancer(0)
 	for _, b := range backends {
 		lb.Add(b)
 	}
 
+	// start load balancer
 	http.HandleFunc("/", lb.Serve)
 
 	s := server.NewServer(&conf)

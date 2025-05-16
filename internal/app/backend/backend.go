@@ -62,6 +62,11 @@ func MonitorBackend(backend *Backend, checkInterval time.Duration) {
 func RunBackends(config *server.ServerConfig) []*Backend {
 	var backends []*Backend
 
+	checkInterval, err := time.ParseDuration(config.CheckInterval)
+	if err != nil {
+		fmt.Println("error parsing check interval duration:", err)
+	}
+
 	for _, u := range config.Backends {
 		url, _ := url.Parse(u)
 
@@ -72,10 +77,7 @@ func RunBackends(config *server.ServerConfig) []*Backend {
 		}
 
 		backends = append(backends, b)
-		checkInterval, err := time.ParseDuration(config.CheckInterval)
-		if err != nil {
-			fmt.Println("error parsing check interval duration:", err)
-		}
+
 		go MonitorBackend(b, checkInterval)
 	}
 

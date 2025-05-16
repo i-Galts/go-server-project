@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"sync/atomic"
 
 	"github.com/i-Galts/go-server-project/internal/app/backend"
 )
@@ -27,19 +28,23 @@ func (lb *LoadBalancer) Add(backend backend.IBackend) {
 	lb.Backends = append(lb.Backends, backend)
 }
 
+// use of atomics is faster than mutex
+func (lb *LoadBalancer) GetNextIndex() uint64 {
+	return atomic.AddUint64(&lb.Current, uint64(1)) % uint64(len(lb.Backends))
+}
+
 // round-robin fashion
 func (lb *LoadBalancer) GetNextBackend() backend.IBackend {
-	lb.Mutex.Lock()
-	defer lb.Mutex.Unlock()
-
 	size := uint64(len(lb.Backends))
+	next := lb.GetNextIndex()
 
-	for i := uint64(0); i < size; i++ {
-		ind := lb.Current % size
+	for i := next; i < size+next; i++ {
+		ind := i % size
 		backend := lb.Backends[ind]
-		lb.Current++
-
 		if backend.IsAlive() {
+			if i != next {
+				atomic.StoreUint64(&lb.Current, ind)
+			}
 			return backend
 		}
 	}
@@ -53,6 +58,6 @@ func (lb *LoadBalancer) Serve(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("all backends are down")
 		return
 	}
-	w.Header().Add("X-Forwarded-Server", b.GetURL())
+	// w.Header().Add("X-Forwarded-Server", b.GetURL())
 	b.Serve(w, r)
 }
