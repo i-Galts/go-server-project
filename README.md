@@ -12,7 +12,7 @@ A simple load balancer written in Go, designed to distribute incoming HTTP reque
 
 ## Prerequisites
 
-- Go 1.20 or higher
+- Go 1.24.3 or higher
 - GNU Make (for build automation)
 - SQLite3 (CLI utility)
 - Apache Bench (`ab`) for load testing (optional)
